@@ -75,7 +75,7 @@ def open_browser_profile(user_id:str, logger:logging.Logger):
             if response['code'] != 0:
                 if 'too many request' in response['msg'].lower():
                     wait_time = random.randint(1, 5)
-                    logger.debug(f'Too many api requests, waiting for {wait_time} seconds')
+                    logger.debug(f'Waiting for {wait_time} seconds to avoid too many api requests')
                     time.sleep(wait_time)
                     continue
                 logger.error('API error when launching profile')
@@ -125,6 +125,14 @@ def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
             break
         except sException.TimeoutException:
             logger.debug('Timeout clicking password field')
+            try:
+                create_wallet = driver.find_element(By.XPATH, f"//span[text()='Create wallet']")
+                if create_wallet:
+                    logger.error('Wallet is not imported')
+                    return
+            except:
+                pass
+
         except sException.StaleElementReferenceException:
             logger.debug('StaleElement password field')
         except:
@@ -168,10 +176,38 @@ def task1(driver:webdriver.Chrome, logger:logging.Logger):
             logger.debug('Wallet login failed')
             return "Wallet login failed"
 
+    asked_for_authorization = False
     if not is_website_logged_in(driver, logger):
-        logger.debug('Website login failed')
-        return "Website login failed"
+        original_window = driver.window_handles[0]
+        if len(driver.window_handles) > 0:
+            driver.switch_to.window(driver.window_handles[-1])
+            if 'mcohilncbfahbmgdjkbpemcciiolgcge' in driver.current_url:
+                try:
+                    confirm_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'btn-fill-highlight'))
+                    )
+                    confirm_button.click()
+                    time.sleep(5)
+                    driver.switch_to.window(original_window)
+                    logger.debug('Login request authorized in wallet')
+                    asked_for_authorization = True
+                except Exception as e: 
+                    logger.error(f'Error authorizing login request in wallet: {e}')
+                    return "Error authorizing login request in wallet"
+            else:
+                driver.switch_to.window(original_window)
+                logger.debug('Popup is not for okx wallet login')
+                return "Website login failed"
+        else:
+            logger.debug('Website login failed')
+            return "Website login failed"
     
+    
+    if asked_for_authorization:
+        if not is_website_logged_in(driver, logger):
+            logger.debug('Website login failed')
+            return "Website login failed"
+
     #Task1 Success
     return 0
 
