@@ -1102,7 +1102,7 @@ if __name__ == '__main__':
     profiles = get_profiles()
     report = []
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(run_profile, profile): profile for profile in profiles}
         
         for future in as_completed(futures):
