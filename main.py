@@ -122,6 +122,11 @@ def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
             password_field.send_keys(CONFIG['WALLET_PASSWORD']) # type password
             time.sleep(0.5)
             password_field.send_keys(Keys.RETURN) # press Enter key
+            driver.refresh()
+
+            driver.execute_script("window.open('https://pioneer.particle.network/en/point', '_blank');")
+            time.sleep(5)
+            handles = driver.window_handles
             break
         except sException.TimeoutException:
             logger.debug('Timeout clicking password field')
@@ -139,7 +144,6 @@ def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
             logger.exception('Exception entering password')
     
     try:
-        driver.refresh()
         for i in range(2):
             try:
                 if i > 0:
@@ -148,9 +152,16 @@ def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
                 wallet_icon = WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'okx-wallet-plugin-copy-3'))
                 )
-                return wallet_icon
+                driver.close()
+                # Switch to the new tab
+                driver.switch_to.window(handles[1])
+                return True
             except sException.TimeoutException:
                 logger.debug('Timeout when logging in to the wallet')
+
+        driver.close()
+        # Switch to the new tab
+        driver.switch_to.window(handles[1])
     except:
         logger.exception('Error when logging in to the wallet')
         return
@@ -814,142 +825,147 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
         logger.exception('Error clicking purchase_nft__button')
         return "Error clicking purchase_nft__button"
     
-    # Click Purchase button
-    try:
-        logger.debug('Clicking Purchase button')
-        purchase__button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                purchase__button_text = 'Purchase'
-                purchase__button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{purchase__button_text}']]"))
-                )
-                driver.execute_script("arguments[0].scrollIntoView(true);", purchase__button)
-                time.sleep(0.5)
-
-                if purchase__button:
-                    logger.debug('purchase__button found')
-                else:
-                    logger.debug('purchase__button missing')
-                purchase__button.click()
-                logger.debug('purchase__button clicked')
-                purchase__button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking open wallet button')
-            except:
-                logger.exception('Exception clicking open wallet button')
-
-        if not purchase__button_clicked:
-            logger.error('purchase__button not found or failed to click')
-            return "purchase__button not found or failed to click"
-    except:
-        logger.exception('Error clicking purchase__button')
-        return "Error clicking purchase__button"
-    
-    # Select USDG Token
-    try:
-        logger.debug('Clicking USDG token button')
-        usdg_token_button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                usdg_token_button_text = 'usdg'
-                usdg_token_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//div[text()='{usdg_token_button_text}']"))
-                )
-                time.sleep(0.5)
-
-                if usdg_token_button:
-                    logger.debug('usdg_token_button found')
-                else:
-                    logger.debug('usdg_token_button missing')
-                usdg_token_button.click()
-                logger.debug('usdg_token_button clicked')
-                usdg_token_button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking usdg token button')
-            except:
-                logger.exception('Exception clicking usdg token button')
-
-        if not usdg_token_button_clicked:
-            logger.error('usdg_token_button not found or failed to click')
-            return "usdg_token_button not found or failed to click"
-    except:
-        logger.exception('Error clicking usdg_token_button')
-        return "Error clicking usdg_token_button"
-    
-    # Click Next button
-    try:
-        logger.debug('Clicking Next button')
-        next_button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                next_button_text = 'Next'
-                next_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{next_button_text}']]"))
-                )
-                time.sleep(0.5)
-
-                if next_button:
-                    logger.debug('next_button found')
-                else:
-                    logger.debug('next_button missing')
-                next_button.click()
-                logger.debug('next_button clicked')
-                next_button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking next button')
-            except:
-                logger.exception('Exception clicking next button')
-
-        if not next_button_clicked:
-            logger.error('next_button not found or failed to click')
-            return "next_button not found or failed to click"
-    except:
-        logger.exception('Error clicking next_button')
-        return "Error clicking next_button"
-
-    # Click Purchase2 button
-    try:
-        logger.debug('Clicking Purchase button (2)')
-        purchase2_button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                purchase2_button_text = 'Purchase'
-                purchase2_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
-                )
-                driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
+    def task4_intermediate_steps():
+        # Click Purchase button
+        try:
+            logger.debug('Clicking Purchase button')
+            purchase__button_clicked = False
+            for _ in range(5): # retry stale element
                 time.sleep(1)
+                try:
+                    purchase__button_text = 'Purchase'
+                    purchase__button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{purchase__button_text}']]"))
+                    )
+                    driver.execute_script("arguments[0].scrollIntoView(true);", purchase__button)
+                    time.sleep(0.5)
 
-                if purchase2_button:
-                    logger.debug('purchase2_button found')
-                else:
-                    logger.debug('purchase2_button missing')
-                purchase2_button.click()
-                logger.debug('purchase2_button clicked')
-                purchase2_button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking next button')
-            except sException.ElementClickInterceptedException as e:
-                logger.debug(f'Click intercepted, retrying...')
+                    if purchase__button:
+                        logger.debug('purchase__button found')
+                    else:
+                        logger.debug('purchase__button missing')
+                    purchase__button.click()
+                    logger.debug('purchase__button clicked')
+                    purchase__button_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking open wallet button')
+                except:
+                    logger.exception('Exception clicking open wallet button')
+
+            if not purchase__button_clicked:
+                logger.error('purchase__button not found or failed to click')
+                return "purchase__button not found or failed to click"
+        except:
+            logger.exception('Error clicking purchase__button')
+            return "Error clicking purchase__button"
+        
+        # Select USDG Token
+        try:
+            logger.debug('Clicking USDG token button')
+            usdg_token_button_clicked = False
+            for _ in range(5): # retry stale element
                 time.sleep(1)
-            except:
-                logger.exception('Exception clicking next button')
+                try:
+                    usdg_token_button_text = 'usdg'
+                    usdg_token_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, f"//div[text()='{usdg_token_button_text}']"))
+                    )
+                    time.sleep(0.5)
 
-        if not purchase2_button_clicked:
-            logger.error('purchase2_button not found or failed to click')
-            return "purchase2_button not found or failed to click"
-    except:
-        logger.exception('Error clicking purchase2_button')
-        return "Error clicking purchase2_button"
+                    if usdg_token_button:
+                        logger.debug('usdg_token_button found')
+                    else:
+                        logger.debug('usdg_token_button missing')
+                    usdg_token_button.click()
+                    logger.debug('usdg_token_button clicked')
+                    usdg_token_button_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking usdg token button')
+                except:
+                    logger.exception('Exception clicking usdg token button')
+
+            if not usdg_token_button_clicked:
+                logger.error('usdg_token_button not found or failed to click')
+                return "usdg_token_button not found or failed to click"
+        except:
+            logger.exception('Error clicking usdg_token_button')
+            return "Error clicking usdg_token_button"
+        
+        # Click Next button
+        try:
+            logger.debug('Clicking Next button')
+            next_button_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    next_button_text = 'Next'
+                    next_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{next_button_text}']]"))
+                    )
+                    time.sleep(0.5)
+
+                    if next_button:
+                        logger.debug('next_button found')
+                    else:
+                        logger.debug('next_button missing')
+                    next_button.click()
+                    logger.debug('next_button clicked')
+                    next_button_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking next button')
+                except:
+                    logger.exception('Exception clicking next button')
+
+            if not next_button_clicked:
+                logger.error('next_button not found or failed to click')
+                return "next_button not found or failed to click"
+        except:
+            logger.exception('Error clicking next_button')
+            return "Error clicking next_button"
+
+        # Click Purchase2 button
+        try:
+            logger.debug('Clicking Purchase button (2)')
+            purchase2_button_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    purchase2_button_text = 'Purchase'
+                    purchase2_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
+                    )
+                    driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
+                    time.sleep(1)
+
+                    if purchase2_button:
+                        logger.debug('purchase2_button found')
+                    else:
+                        logger.debug('purchase2_button missing')
+                    purchase2_button.click()
+                    logger.debug('purchase2_button clicked')
+                    purchase2_button_clicked = True
+                    return 0
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking next button')
+                except sException.ElementClickInterceptedException as e:
+                    logger.debug(f'Click intercepted, retrying...')
+                    time.sleep(1)
+                except:
+                    logger.exception('Exception clicking next button')
+
+            if not purchase2_button_clicked:
+                logger.error('purchase2_button not found or failed to click')
+                return "purchase2_button not found or failed to click"
+        except:
+            logger.exception('Error clicking purchase2_button')
+            return "Error clicking purchase2_button"
+
+    intermediate_result = task4_intermediate_steps()
+    
+    # After clicking Purchase2 button we get a captcha before redirecting to wallet confirmation
 
     # Confirm payment in OKX wallet
     try:
@@ -957,7 +973,12 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
         try:
             # Switch to the new window
             switched_to_popup = False
+            counter = 0
             while True:# Wait for captcha get solved and eventually new window appear
+                counter +=1
+                if counter % 90 == 0:
+                    driver.refresh()
+                    task4_intermediate_steps()
                 time.sleep(1)
                 if len(driver.window_handles) > 1:
                     driver.switch_to.window(driver.window_handles[-1])
@@ -1014,13 +1035,65 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                     lambda driver: div_text.lower() in driver.find_element(By.CLASS_NAME, "react-responsive-modal-modal").text.lower()
                 )
                 logger.info('Transaction success')
-                # TASK4 success
-                return 0
+                break
             except sException.TimeoutException:
                 logger.debug('Timeout waiting for transaction confirmation')
     except:
         logger.exception('Error waiting for transaction confirmation')
         return "Error waiting for transaction confirmation"
+    
+    # Close transaction confirmation popup
+    try:
+        for _ in range(5): # retry stale element
+            time.sleep(1)
+            try:
+                close_button = WebDriverWait(driver, 20).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'react-responsive-modal-closeButton'))
+                )
+                close_button.click()
+                logger.debug('nft buy confirmation popup closed')
+                break
+            except sException.TimeoutException:
+                logger.debug('Timeout closing nft transaction confirmation popup')
+            except:
+                logger.exception('Exception closing nft transaction confirmation popup')
+        if not close_button:
+            logger.error('nft transaction confirmation popup not found or failed to click')
+            return 'nft transaction confirmation popup not found or failed to click'
+
+    except:
+        logger.exception('Error closing nft transaction confirmation popup')
+        return "Error closing nft transaction confirmation popup"
+
+    # Press Back button
+    try:
+        back_button_clicked = False
+        for _ in range(5): # retry stale element
+            time.sleep(1)
+            try:
+                back_button_text = 'back'
+                back_button = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.XPATH, f"//div[text()='{back_button_text}']"))
+                )
+                back_button.click()
+                back_button_clicked = True
+                logger.debug('back button clicked')
+                break
+            except sException.TimeoutException:
+                logger.debug('Timeout clicking back button')
+            except:
+                logger.exception('Exception in back button')
+
+        if back_button_clicked:
+            time.sleep(5) # voluntary wait for smooth transition
+            # TASK4 SUCCESS
+            return 0
+        else:
+            logger.error('Back button not found or failed to click')
+            return "Back button not found or failed to click"
+    except:
+        logger.exception('Error clicking back button')
+        return "Error clicking back button"
 
 def main(profile, logger:logging.Logger):
     try:
@@ -1044,23 +1117,26 @@ def main(profile, logger:logging.Logger):
                 logger.error('Task1 Failure')
                 return f"Task1 Failure\n{task1_success}" 
             
-            if CONFIG['SHOULD_RUN_TASK2'].lower().strip() == 'yes':
-                task2_success = task2(driver, logger)
-                if task2_success==0:
-                    logger.info('Task2 Success')
-                else:
-                    logger.error('Task2 Failure')
-                    return f"Task2 Failure\n{task2_success}"
+            # if CONFIG['SHOULD_RUN_TASK2'].lower().strip() == 'yes':
+            #     task2_success = task2(driver, logger)
+            #     if task2_success==0:
+            #         logger.info('Task2 Success')
+            #     else:
+            #         logger.error('Task2 Failure')
+            #         return f"Task2 Failure\n{task2_success}"
 
-            # Task3 run 10 times
-            for i in range(1, 11): 
-                task3_success = task3(driver, logger)
-                if task3_success==0:
-                    logger.info(f'Task3 RUN-{i} Success')
-                else:
-                    logger.error(f'Task3 RUN-{i} Failure')
-                    return f"Task3 RUN-{i} Failure\n{task3_success}"
+            # # Task3 run 10 times
+            # for i in range(1, 11): 
+            #     task3_success = task3(driver, logger)
+            #     if task3_success==0:
+            #         logger.info(f'Task3 RUN-{i} Success')
+            #     else:
+            #         logger.error(f'Task3 RUN-{i} Failure')
+            #         return f"Task3 RUN-{i} Failure\n{task3_success}"
             
+            # # voluntary wait for transaction to be reflected in wallet
+            # time.sleep(10)
+
             # Task4 run 5 times
             for i in range(1, 6):
                 task4_success = task4(driver, logger)
