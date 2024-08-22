@@ -655,7 +655,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
         try:
             # Switch to the new window
             switched_to_popup = False
-            for _ in range(90):# Wait for captcha get solved and eventually new window appear
+            while True:# Wait for captcha get solved and eventually new window appear
                 time.sleep(1)
                 if len(driver.window_handles) > 1:
                     driver.switch_to.window(driver.window_handles[-1])
@@ -957,7 +957,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
         try:
             # Switch to the new window
             switched_to_popup = False
-            for _ in range(90):# Wait for captcha get solved and eventually new window appear
+            while True:# Wait for captcha get solved and eventually new window appear
                 time.sleep(1)
                 if len(driver.window_handles) > 1:
                     driver.switch_to.window(driver.window_handles[-1])
