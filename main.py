@@ -64,16 +64,25 @@ def get_profiles()->list:
 
 def open_browser_profile(user_id:str, logger:logging.Logger):
     try:
-        try:
-            response = requests.get(f'{API_URL}api/v1/browser/start?user_id={user_id}').json()
-        except requests.exceptions.ConnectionError:
-            logger.error('AdsPower connection error')
-            return
 
-        if response['code'] != 0:
-            logger.error('API error when launching profile')
-            logger.debug(response['msg'])
-            return
+        while(True):
+            try:
+                response = requests.get(f'{API_URL}api/v1/browser/start?user_id={user_id}').json()
+            except requests.exceptions.ConnectionError:
+                logger.error('AdsPower connection error')
+                return
+
+            if response['code'] != 0:
+                if 'too many request' in response['msg'].lower():
+                    wait_time = random.randint(1, 5)
+                    logger.debug(f'Too many api requests, waiting for {wait_time} seconds')
+                    time.sleep(wait_time)
+                    continue
+                logger.error('API error when launching profile')
+                logger.debug(response['msg'])
+                return
+            else:
+                break
 
         chrome_driver = response["data"]["webdriver"]
         service = Service(executable_path=chrome_driver)
@@ -1038,7 +1047,7 @@ def main(profile, logger:logging.Logger):
             close_browser_profile(profile, driver, logger)
             logger.debug('Browser Closed Successfully')
         except:
-            logger.exception('Error closing browser')
+            logger.debug('Error closing browser')
 
 def run_profile(profile):
     run_id = str(uuid.uuid4())
