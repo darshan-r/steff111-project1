@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import logzero
 from logzero import logger, LogFormatter
 import logging
+import sys
 
 API_URL = 'http://local.adspower.net:50325/'
 
@@ -1251,15 +1252,27 @@ def run_profile(profile):
     return {"Profile ID": profile['integer_id'], "Run ID": run_id, "Result": result}
 
 if __name__ == '__main__':
-    # logger.debug('Started')
-    # profiles = get_profiles()
-    report = [{"Profile ID": 1, "Run ID": 1, "Result": 1}]
+    # Write the report to a CSV file
+    file_path = os.path.join(reports_dir, 'report.csv')
 
-    # with ThreadPoolExecutor(max_workers=5) as executor:
-    #     futures = {executor.submit(run_profile, profile): profile for profile in profiles}
+    # test if report file is free to edit, to sve from permission error in case 
+    # it is open in some other program.
+    try:
+        with open(file_path, mode='w', newline='') as file:
+            pass
+    except:
+        print("Please close the report.csv file and try again")
+        sys.exit(1)
+
+    logger.debug('Started')
+    profiles = get_profiles()
+    report = []
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {executor.submit(run_profile, profile): profile for profile in profiles}
         
-    #     for future in as_completed(futures):
-    #         report.append(future.result())
+        for future in as_completed(futures):
+            report.append(future.result())
 
 
     def rotate_reports():
@@ -1278,8 +1291,7 @@ if __name__ == '__main__':
         if os.path.exists(_latest):
             os.rename(_latest, latest)
 
-    # Write the report to a CSV file
-    file_path = os.path.join(reports_dir, 'report.csv')
+    
     with open(file_path, mode='w', newline='') as file:
         fieldnames = ['Profile ID', 'Run ID', 'Result']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
