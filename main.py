@@ -1271,11 +1271,11 @@ if __name__ == '__main__':
         # Rotate the reports to keep the last 3
         if os.path.exists(old):
             os.remove(old)
-        if os.path.exists(recent) and os.path.exists(old):
+        if os.path.exists(recent):
             os.rename(recent, old)
-        if os.path.exists(latest) and os.path.exists(recent):
+        if os.path.exists(latest):
             os.rename(latest, recent)
-        if os.path.exists(_latest) and os.path.exists(latest) :
+        if os.path.exists(_latest):
             os.rename(_latest, latest)
 
     # Write the report to a CSV file
