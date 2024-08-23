@@ -1251,7 +1251,16 @@ def run_profile(profile):
     
     return {"Profile ID": profile['integer_id'], "Run ID": run_id, "Result": result}
 
+
+def delete_old_logs():
+    for filename in os.listdir(logs_dir):
+        file_path = os.path.join(logs_dir, filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
 if __name__ == '__main__':
+    delete_old_logs()
+    
     # Write the report to a CSV file
     file_path = os.path.join(reports_dir, 'report.csv')
 
