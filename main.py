@@ -81,7 +81,7 @@ def get_profiles()->list:
 
             for i in use_input_profiles:
                 for j in all_available_profiles:
-                    if i == j['alphanumeric_id']:
+                    if i == j['integer_id']:
                         profiles.append(j)
             return profiles       
         else:
