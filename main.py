@@ -28,6 +28,7 @@ dotenv_path = os.path.join(current_dir, '.env')
 profiles_csv_path = os.path.join(current_dir, 'profiles.csv')
 logs_dir = os.path.join(current_dir, 'logs')
 extension_path = os.path.join(current_dir, 'captcha-solver-extension')
+reports_dir = os.path.join(current_dir, 'reports')
 
 CONFIG = dotenv.dotenv_values(dotenv_path=dotenv_path)
 
@@ -41,30 +42,56 @@ def setup_logger(log_file):
     return custom_logger
 
 def get_profiles()->list:
-    profile_ids = []
-    try:
+    profiles = []
+    use_input_profiles = []
+    try:            
         with open(profiles_csv_path, mode='r') as file:
             csv_reader = csv.reader(file)
-            
-            # Skip the header (first row)
-            # next(csv_reader)
             
             # Loop through each row in the CSV
             for row in csv_reader:
                 if len(row) > 0:  # Ensure the row is not empty
                     try:
                         id = row[0]  # Access first column
-                        profile_ids.append(id)
+                        use_input_profiles.append(id)
                     except IndexError:
                         pass
     except:
         logger.exception('Error reading profiles.csv')
-    finally:
-        return profile_ids
+    
+    try:
+        if len(use_input_profiles) > 0:
+            all_available_profiles = []
+            page = 0
+            while True:
+                time.sleep(1)
+                page += 1        
+                resp = requests.get(f'{API_URL}api/v1/user/list?page_size=50&page={page}').json()
+                if resp['code'] != 0:
+                    logger.error(f'Error fetching profiles from api {resp["msg"]}')
+                    return profiles
+                elif len(resp['data']['list']) == 0:
+                    break
+                else:
+                    for i in resp['data']['list']:
+                        all_available_profiles.append({
+                            'integer_id':i['serial_number'],
+                            'alphanumeric_id':i['user_id']
+                        })
 
+            for i in use_input_profiles:
+                for j in all_available_profiles:
+                    if i == j['alphanumeric_id']:
+                        profiles.append(j)
+            return profiles       
+        else:
+            return profiles
+    except:
+        logger.get('Error fetching profiles from api')
+        return profiles
+    
 def open_browser_profile(user_id:str, logger:logging.Logger):
     try:
-
         while(True):
             try:
                 response = requests.get(f'{API_URL}api/v1/browser/start?user_id={user_id}').json()
@@ -718,7 +745,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
         elif i == 2:
             return task3_intermediate_result
         else:
-            driver.refresh()
+            driver.get('https://pioneer.particle.network/en/point')
     # Switch to iframe wallet
     try:
         for _ in range(5): # retry stale element
@@ -1118,9 +1145,9 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
 
 def main(profile, logger:logging.Logger):
     try:
-        logger.info(f'Opening Browser Profile: {profile}')
-        driver = open_browser_profile(profile, logger)
-        if driver:
+        logger.info(f'Opening Browser Profile: {profile["integer_id"]}')
+        driver = open_browser_profile(profile['alphanumeric_id'], logger)
+        if isinstance(driver, webdriver.Chrome):
             original_window = driver.current_window_handle
             # Close all other tabs/windows
             for handle in driver.window_handles:
@@ -1147,31 +1174,44 @@ def main(profile, logger:logging.Logger):
                     return f"Task2 Failure\n{task2_success}"
 
             # Task3 run 10 times
-            for i in range(1, 11): 
+            task3_successes = 0
+            max_tries = 20 #so each profile get 2 chances
+            while task3_successes < 10 and max_tries > 0:
+                max_tries -= 1
                 task3_success = task3(driver, logger)
                 if task3_success==0:
-                    logger.info(f'Task3 RUN-{i} Success')
-                elif i == 10:
-                    logger.error(f'Task3 RUN-{i} Failure')
-                    return f"Task3 RUN-{i} Failure\n{task3_success}"
+                    logger.info(f'Task3 RUN-{task3_successes} Success')
+                    task3_successes += 1
                 else:
-                    logger.error(f'Task3 RUN-{i} Failure')
-
+                    logger.error(f'Task3 RUN-{task3_successes} Failure')
+                    driver.get('https://pioneer.particle.network/en/point')
+            
+            if task3_successes < 10:
+                logger.error('Task3 Failed to execute 10 times')
+                return "Task3 Failed to execute 10 times"
+            
             # voluntary wait for transaction to be reflected in wallet
             time.sleep(10)
 
             # Task4 run 5 times
-            for i in range(1, 6):
+            task4_successes = 0
+            max_tries = 10 #so each profile get 2 chances
+            while task4_successes < 5 and max_tries > 0:
+                max_tries -= 1
                 task4_success = task4(driver, logger)
                 if task4_success==0:
-                    logger.info(f'Task4 RUN-{i} Success')
+                    logger.info(f'Task4 RUN-{task4_successes} Success')
+                    task4_successes += 1
                 else:
-                    logger.error(f'Task4 RUN-{i} Failure')
-                    return f"Task4 RUN-{i} Failure\n{task4_success}"
+                    logger.error(f'Task4 RUN-{task4_successes} Failure')
+                    driver.get('https://pioneer.particle.network/en/point')
+            
+            if task4_successes < 5:
+                logger.error('Task4 Failed to execute 5 times')
+                return "Task4 Failed to execute 5 times"
         else:
             logger.debug('Failed to open browser')
-            return "Failed to open browser"
-        
+            return "Failed to open browser"        
         return "SUCCESS"
     
     except Exception as e:
@@ -1179,7 +1219,7 @@ def main(profile, logger:logging.Logger):
         return str(e)
     finally:
         try:
-            close_browser_profile(profile, driver, logger)
+            close_browser_profile(profile['alphanumeric_id'], driver, logger)
             logger.debug('Browser Closed Successfully')
         except:
             logger.debug('Error closing browser')
@@ -1191,13 +1231,14 @@ def run_profile(profile):
     # Set up a custom logger for this specific profile run
     custom_logger = setup_logger(log_file)
     
-    custom_logger.info(f'Starting run for profile: {profile}')
+    custom_logger.info(f'Starting run for profile: {profile["integer_id"]}')
     result = main(profile, custom_logger)
-    custom_logger.info(f'Completed run for profile: {profile} with result: {result}')
+    custom_logger.info(f'Completed run for profile: {profile["integer_id"]} with result: {result}')
     
-    return {"Profile ID": profile, "Run ID": run_id, "Result": result}
+    return {"Profile ID": profile['integer_id'], "Run ID": run_id, "Result": result}
 
 if __name__ == '__main__':
+    logger.debug('Started')
     profiles = get_profiles()
     report = []
 
@@ -1207,12 +1248,33 @@ if __name__ == '__main__':
         for future in as_completed(futures):
             report.append(future.result())
 
+
+    def rotate_reports():
+        _latest = os.path.join(reports_dir, 'report.csv')
+        latest = os.path.join(reports_dir, 'latest-report.csv')
+        recent = os.path.join(reports_dir, 'recent-report.csv')
+        old = os.path.join(reports_dir, 'old-report.csv')
+
+        # Rotate the reports to keep the last 3
+        if os.path.exists(old):
+            os.remove(old)
+        if os.path.exists(recent):
+            os.rename(recent, old)
+        if os.path.exists(latest):
+            os.rename(latest, recent)
+        if os.path.exists(_latest):
+            os.rename(_latest, latest)
+
     # Write the report to a CSV file
-    with open('report.csv', mode='w', newline='') as file:
+    file_path = os.path.join(reports_dir, 'report.csv')
+    with open(file_path, mode='w', newline='') as file:
         fieldnames = ['Profile ID', 'Run ID', 'Result']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(report)
 
-    print("Report has been generated: report.csv")
+    # preserve the last 3 reports
+    rotate_reports()
+
+    print("Report has been generated: latest-report.csv")
 
