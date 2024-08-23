@@ -197,14 +197,17 @@ def is_website_logged_in(driver:webdriver.Chrome, logger:logging.Logger)->bool:
     driver.get('https://pioneer.particle.network/en/point')
     login_status=False
     for _ in range(10):
-        time.sleep(1)
-        btn = driver.find_element(By.CLASS_NAME,'polygon-btn-text')
-        if btn:
-            btn_text = btn.text
-            if btn_text[:2] == '0X':
-                login_status = True
-                break
-    
+        try:
+            time.sleep(1)
+            btn = driver.find_element(By.CLASS_NAME,'polygon-btn-text')
+            if btn:
+                btn_text = btn.text
+                if btn_text[:2] == '0X':
+                    login_status = True
+                    break
+        except:
+            pass
+
     return login_status
 
 def task1(driver:webdriver.Chrome, logger:logging.Logger):
@@ -1166,11 +1169,19 @@ def main(profile, logger:logging.Logger):
                 return f"Task1 Failure\n{task1_success}" 
             
             if CONFIG['SHOULD_RUN_TASK2'].lower().strip() == 'yes':
-                task2_success = task2(driver, logger)
-                if task2_success==0:
-                    logger.info('Task2 Success')
-                else:
-                    logger.error('Task2 Failure')
+                max_tries = 3
+                task2_success = None
+                while max_tries > 0:
+                    max_tries -= 1
+                    task2_success = task2(driver, logger)
+                    if task2_success==0:
+                        logger.info('Task2 Success')
+                        break
+                    else:
+                        logger.error('Task2 Failure - Retrying')
+                        driver.get('https://pioneer.particle.network/en/point')
+                    
+                if not task2_success==0:
                     return f"Task2 Failure\n{task2_success}"
 
             # Task3 run 10 times
