@@ -750,6 +750,8 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
                     logger.debug('Waiting for transaction confirmation')
             except sException.TimeoutException:
                 logger.debug('Timeout waiting for transaction confirmation')
+            except sException.StaleElementReferenceException:
+                logger.debug('StaleElement waiting for transaction confirmation')
     except:
         logger.exception('Error waiting for transaction confirmation')
         return "Error waiting for transaction confirmation"
