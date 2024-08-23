@@ -717,7 +717,8 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
             break
         elif i == 2:
             return task3_intermediate_result
-
+        else:
+            driver.refresh()
     # Switch to iframe wallet
     try:
         for _ in range(5): # retry stale element
@@ -832,7 +833,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
     except:
         logger.exception('Error clicking purchase_nft__button')
         return "Error clicking purchase_nft__button"
-    
+
     def task4_intermediate_steps():
         # Click Purchase button
         try:
@@ -972,7 +973,14 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
             return "Error clicking purchase2_button"
 
     intermediate_result = task4_intermediate_steps()
-    
+    for i in range(3):
+        if intermediate_result == 0:
+            break
+        elif i == 2:
+            return 'Failed please check the logs'
+        else:
+            driver.refresh()
+
     # After clicking Purchase2 button we get a captcha before redirecting to wallet confirmation
 
     # Confirm payment in OKX wallet
@@ -984,7 +992,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
             counter = 0
             while True:# Wait for captcha get solved and eventually new window appear
                 counter +=1
-                if counter % 90 == 0:
+                if counter % 60 == 0:
                     driver.refresh()
                     task4_intermediate_steps()
                 time.sleep(1)
@@ -1036,6 +1044,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
     try:
         logger.debug('Waiting for transaction confirmation')
         for _ in range(5): # retry stale element
+            time.sleep(1)
             try:
                 div_text = 'successfully'
                 # Wait until the element with the class "react-responsive-modal-modal" contains the text "successfully", case insensitive
@@ -1046,12 +1055,16 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                 break
             except sException.TimeoutException:
                 logger.debug('Timeout waiting for transaction confirmation')
+            except sException.StaleElementReferenceException:
+                logger.debug('StaleElement waiting for transaction confirmation')
     except:
         logger.exception('Error waiting for transaction confirmation')
         return "Error waiting for transaction confirmation"
     
     # Close transaction confirmation popup
     try:
+        close_button = None
+        logger.debug('Closing nft transaction confirmation popup')
         for _ in range(5): # retry stale element
             time.sleep(1)
             try:
