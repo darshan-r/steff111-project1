@@ -425,293 +425,299 @@ def task2(driver:webdriver.Chrome, logger:logging.Logger):
 def task3(driver:webdriver.Chrome, logger:logging.Logger):
     original_window = driver.current_window_handle
 
-    # Click open wallet button
-    try:
-        logger.debug('Clicking open wallet button')
-        open_wallet_button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                open_wallet_button_text = 'Open Wallet'
-                open_wallet_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{open_wallet_button_text}']]"))
-                )
-                driver.execute_script("arguments[0].scrollIntoView(true);", open_wallet_button)
-                time.sleep(0.5)
-
-                if open_wallet_button:
-                    logger.debug('open_wallet_button found')
-                else:
-                    logger.debug('open_wallet_button missing')
-                open_wallet_button.click()
-                logger.debug('open_wallet_button clicked')
-                open_wallet_button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking open wallet button')
-            except:
-                logger.exception('Exception clicking open wallet button')
-
-        if not open_wallet_button_clicked:
-            logger.error('open_wallet_button not found or failed to click')
-            return "open_wallet_button not found or failed to click"
-    except:
-        logger.exception('Error clicking open_wallet_button')
-        return "Error clicking open_wallet_button"
-
-    # Switch to iframe wallet
-    try:
-        # Wait for the iframe to be present
-        iframe = WebDriverWait(driver, 60).until(
-            EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, 'iframe'))
-        )
-        if iframe:
-            logger.debug('Switched to iframe wallet')
-    except sException.TimeoutException:
-        logger.debug('Timeout switching to iframe wallet')
-        return "Timeout switching to iframe wallet"
-    except:
-        logger.exception('Error switching to iframe wallet')
-        return "Error switching to iframe wallet"
-
-    # Copy wallet address and Click send button
-    try:
-        logger.debug('Clicking send button')
-        send_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                # Copy wallet address to clipboard
-                wallet_address_button = WebDriverWait(driver, 20).until(
-                    EC.element_to_be_clickable((By.CLASS_NAME, 'copy-wrap'))
-                )
-                wallet_address_button.click()
-                time.sleep(0.3)
-                wallet_address = pyperclip.paste()
-
-                send_button = WebDriverWait(driver, 20).until(
-                    EC.element_to_be_clickable((By.CLASS_NAME, 'icon-button-default'))
-                    )
-    
-                if send_button:
-                    logger.debug('send found')
-                else:
-                    logger.debug('send missing')
-                time.sleep(1)
-                send_button.click()
-                logger.debug('send clicked')
-                send_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout send button step')
-            except:
-                logger.exception('Exception clicking send button')
-        if not send_clicked:
-            logger.error('Send button not found or failed to click')
-            return "Send button not found or failed to click"
-    except:
-        logger.exception('Error clicking send button')
-        return "Error clicking send button"
- 
-    # Click Choose Token Button
-    try:
-        logger.debug('Clicking choose_token button')
-        choose_token_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                choose_token_button = WebDriverWait(driver, 20).until(
-                    EC.element_to_be_clickable((By.CLASS_NAME, 'choose-token'))
-                    )
-    
-                if choose_token_button:
-                    logger.debug('choose_token button found')
-                else:
-                    logger.debug('choose_token button missing')
-                time.sleep(1)
-                choose_token_button.click()
-                logger.debug('choose_token button clicked')
-                choose_token_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking choose token button')
-            except:
-                logger.exception('Exception clicking choose token button')
-        if not choose_token_clicked:
-            logger.error('choose_token button not found or failed to click')
-            return "choose_token button not found or failed to click"
-    except:
-        logger.exception('Error clicking choose_token button')
-        return "Error clicking choose_token button"
-
-    # Choose Appropriate Token
-    try:
-        logger.debug('Choosing USDG token')
-        token_item_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                scroll_div = WebDriverWait(driver, 20).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'scrollContainer'))
-                    )
-                if not scroll_div:
-                    logger.error('scroll_div not found on wallet page')
-                    return "scroll_div not found on wallet page"
-                
-                time.sleep(1)
-                token_item_button = WebDriverWait(driver, 20).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-key="Ethereum_0_USDG_USDG"]'))
-                    )
-    
-                if token_item_button:
-                    logger.debug('token_item button found')
-                else:
-                    logger.debug('token_item button missing')
-                time.sleep(1)
-                token_item_button.click()
-                logger.debug('token_item button clicked')
-                token_item_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking token button')
-            except:
-                logger.exception('Exception clicking token button')
-        if not token_item_clicked:
-            logger.error('token_item button not found or failed to click')
-            return "token_item button not found or failed to click"
-    except:
-        logger.exception('Error clicking token_item button')
-        return "Error clicking token_item button"
-    
-    # Enter wallet address
-    try:
-        logger.debug('Entering wallet address')
-        wallet_address_entered = False
-        for _ in range(5):
-            try:
-                time.sleep(1)
-                textarea = driver.find_element(By.ID, 'send_to')
-                textarea.click()
-                textarea.send_keys(wallet_address)
-                wallet_address_entered = True
-                break
-            except:
-                logger.exception('Exception entering wallet address')
-        if not wallet_address_entered:
-            logger.error('Failed to enter wallet address')
-            return "Failed to enter wallet address"
-    except:
-        logger.exception('Error entering wallet address')
-        return "Error entering wallet address"
-    
-    # Enter amount
-    try:
-        logger.debug('Entering amount')
-        amount_entered = False
-        for _ in range(5):
-            try:
-                time.sleep(1)
-                amount_field = driver.find_element(By.ID, 'send_amount')
-                amount_field.click()
-                amount = str(round(random.uniform(0.01, 0.10), 2))
-                amount_field.send_keys(amount)
-                amount_field.send_keys(Keys.RETURN) # Press Enter to submit
-                amount_entered = True
-                break
-            except:
-                logger.exception('Exception entering amount')
-        if not amount_entered:
-            logger.error('Failed to enter amount')
-            return "Failed to enter amount"
-    except:
-        logger.exception('Error entering amount')
-        return "Error entering amount"
-    
-    # Click Send button (Swap)
-    try:
-        logger.debug('Clicking swap_send button')
-        swap_send_button_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                swap_send_button = WebDriverWait(driver, 20).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, 'swap-btn'))
-                    )
-    
-                if swap_send_button:
-                    logger.debug('swap_send button found')
-                else:
-                    logger.debug('swap_send button missing')
-
-                swap_send_button.click()
-                logger.debug('swap_send button clicked')
-                swap_send_button_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking swap send button')
-            except:
-                logger.exception('Exception clicking swap send button ')
-
-        if not swap_send_button_clicked:
-            logger.error('swap_send button not found or failed to click')
-            return "swap_send button not found or failed to click"
-    except:
-        logger.exception('Error clicking swap_send button')
-        return "Error clicking swap_send button"
-    
-    # Solve captcha and confirm payment in OKX wallet
-    try:
-        logger.debug('Solving captcha and confirming payment in wallet')
-        # Confirm payment in wallet
+    def task3_intermediate():
+        # Click open wallet button
         try:
-            # Switch to the new window
-            switched_to_popup = False
-            while True:# Wait for captcha get solved and eventually new window appear
+            logger.debug('Clicking open wallet button')
+            open_wallet_button_clicked = False
+            for _ in range(5): # retry stale element
                 time.sleep(1)
-                if len(driver.window_handles) > 1:
-                    driver.switch_to.window(driver.window_handles[-1])
-                    switched_to_popup = True
+                try:
+                    open_wallet_button_text = 'Open Wallet'
+                    open_wallet_button = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{open_wallet_button_text}']]"))
+                    )
+                    driver.execute_script("arguments[0].scrollIntoView(true);", open_wallet_button)
+                    time.sleep(0.5)
+
+                    if open_wallet_button:
+                        logger.debug('open_wallet_button found')
+                    else:
+                        logger.debug('open_wallet_button missing')
+                    open_wallet_button.click()
+                    logger.debug('open_wallet_button clicked')
+                    open_wallet_button_clicked = True
                     break
-            if not switched_to_popup:
-                logger.error('Failed to switch to the wallet popup window')
-                logger.debug('Captcha solver probably failed to solve the captcha')
-                return "Failed to switch to the wallet popup window"
-            
-            time.sleep(2)
-            
-            # Click first confirm button
-            try:
-                first_confirmation = False
-                for _ in range(5): # retry stale element
-                    time.sleep(1)
-                    try:
-                        first_confirmation_button = WebDriverWait(driver, 20).until(
-                            EC.presence_of_element_located((By.CLASS_NAME, 'btn-fill-highlight'))
-                        )
-                        first_confirmation_button.click()
-                        logger.debug('first confirm button click')
-                        first_confirmation = True
-                        break
-                    except sException.TimeoutException:
-                        logger.debug('Timeout clicking first confirm button')
-                    except:
-                        logger.exception('Exception clicking first confirm button')
-                if not first_confirmation:
-                    logger.error('First confirm button not found or failed to click')
-                    return "First confirm button not found or failed to click"
-            except:
-                logger.exception('Error clicking first confirm button')
-                return "Error clicking first confirm button"
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking open wallet button')
+                except:
+                    logger.exception('Exception clicking open wallet button')
+
+            if not open_wallet_button_clicked:
+                logger.error('open_wallet_button not found or failed to click')
+                return "open_wallet_button not found or failed to click"
         except:
-            logger.exception('Error confirming payment in wallet')
-            return "Error confirming payment in wallet"
-    except:
-        logger.exception('Error in captcha solver')
-        return "Error in captcha solver"
-    finally:
-        # Switch back to the original window
-        driver.switch_to.window(original_window)
+            logger.exception('Error clicking open_wallet_button')
+            return "Error clicking open_wallet_button"
+
+        # Switch to iframe wallet
+        try:
+            # Wait for the iframe to be present
+            iframe = WebDriverWait(driver, 60).until(
+                EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, 'iframe'))
+            )
+            if iframe:
+                logger.debug('Switched to iframe wallet')
+        except sException.TimeoutException:
+            logger.debug('Timeout switching to iframe wallet')
+            return "Timeout switching to iframe wallet"
+        except:
+            logger.exception('Error switching to iframe wallet')
+            return "Error switching to iframe wallet"
+
+        # Copy wallet address and Click send button
+        try:
+            logger.debug('Clicking send button')
+            send_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    # Copy wallet address to clipboard
+                    wallet_address_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'copy-wrap'))
+                    )
+                    wallet_address_button.click()
+                    time.sleep(0.3)
+                    wallet_address = pyperclip.paste()
+
+                    send_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'icon-button-default'))
+                        )
+        
+                    if send_button:
+                        logger.debug('send found')
+                    else:
+                        logger.debug('send missing')
+                    time.sleep(1)
+                    send_button.click()
+                    logger.debug('send clicked')
+                    send_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout send button step')
+                except:
+                    logger.exception('Exception clicking send button')
+            if not send_clicked:
+                logger.error('Send button not found or failed to click')
+                return "Send button not found or failed to click"
+        except:
+            logger.exception('Error clicking send button')
+            return "Error clicking send button"
     
+        # Click Choose Token Button
+        try:
+            logger.debug('Clicking choose_token button')
+            choose_token_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    choose_token_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'choose-token'))
+                        )
+        
+                    if choose_token_button:
+                        logger.debug('choose_token button found')
+                    else:
+                        logger.debug('choose_token button missing')
+                    time.sleep(1)
+                    choose_token_button.click()
+                    logger.debug('choose_token button clicked')
+                    choose_token_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking choose token button')
+                except:
+                    logger.exception('Exception clicking choose token button')
+            if not choose_token_clicked:
+                logger.error('choose_token button not found or failed to click')
+                return "choose_token button not found or failed to click"
+        except:
+            logger.exception('Error clicking choose_token button')
+            return "Error clicking choose_token button"
+
+        # Choose Appropriate Token
+        try:
+            logger.debug('Choosing USDG token')
+            token_item_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    scroll_div = WebDriverWait(driver, 20).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'scrollContainer'))
+                        )
+                    if not scroll_div:
+                        logger.error('scroll_div not found on wallet page')
+                        return "scroll_div not found on wallet page"
+                    
+                    time.sleep(1)
+                    token_item_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-key="Ethereum_0_USDG_USDG"]'))
+                        )
+        
+                    if token_item_button:
+                        logger.debug('token_item button found')
+                    else:
+                        logger.debug('token_item button missing')
+                    time.sleep(1)
+                    token_item_button.click()
+                    logger.debug('token_item button clicked')
+                    token_item_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking token button')
+                except:
+                    logger.exception('Exception clicking token button')
+            if not token_item_clicked:
+                logger.error('token_item button not found or failed to click')
+                return "token_item button not found or failed to click"
+        except:
+            logger.exception('Error clicking token_item button')
+            return "Error clicking token_item button"
+        
+        # Enter wallet address
+        try:
+            logger.debug('Entering wallet address')
+            wallet_address_entered = False
+            for _ in range(5):
+                try:
+                    time.sleep(1)
+                    textarea = driver.find_element(By.ID, 'send_to')
+                    textarea.click()
+                    textarea.send_keys(wallet_address)
+                    wallet_address_entered = True
+                    break
+                except:
+                    logger.exception('Exception entering wallet address')
+            if not wallet_address_entered:
+                logger.error('Failed to enter wallet address')
+                return "Failed to enter wallet address"
+        except:
+            logger.exception('Error entering wallet address')
+            return "Error entering wallet address"
+        
+        # Enter amount
+        try:
+            logger.debug('Entering amount')
+            amount_entered = False
+            for _ in range(5):
+                try:
+                    time.sleep(1)
+                    amount_field = driver.find_element(By.ID, 'send_amount')
+                    amount_field.click()
+                    amount = str(round(random.uniform(0.01, 0.10), 2))
+                    amount_field.send_keys(amount)
+                    amount_field.send_keys(Keys.RETURN) # Press Enter to submit
+                    amount_entered = True
+                    break
+                except:
+                    logger.exception('Exception entering amount')
+            if not amount_entered:
+                logger.error('Failed to enter amount')
+                return "Failed to enter amount"
+        except:
+            logger.exception('Error entering amount')
+            return "Error entering amount"
+        
+        # Click Send button (Swap)
+        try:
+            logger.debug('Clicking swap_send button')
+            swap_send_button_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    swap_send_button = WebDriverWait(driver, 20).until(
+                            EC.element_to_be_clickable((By.CLASS_NAME, 'swap-btn'))
+                        )
+        
+                    if swap_send_button:
+                        logger.debug('swap_send button found')
+                    else:
+                        logger.debug('swap_send button missing')
+
+                    swap_send_button.click()
+                    logger.debug('swap_send button clicked')
+                    swap_send_button_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking swap send button')
+                except:
+                    logger.exception('Exception clicking swap send button ')
+
+            if not swap_send_button_clicked:
+                logger.error('swap_send button not found or failed to click')
+                return "swap_send button not found or failed to click"
+        except:
+            logger.exception('Error clicking swap_send button')
+            return "Error clicking swap_send button"
+        
+        # Solve captcha and confirm payment in OKX wallet
+        try:
+            logger.debug('Solving captcha and confirming payment in wallet')
+            # Confirm payment in wallet
+            try:
+                # Switch to the new window
+                switched_to_popup = False
+                WebDriverWait(driver, 60).until(lambda d: len(d.window_handles) > 1) 
+                driver.switch_to.window(driver.window_handles[-1])
+                switched_to_popup = True
+                
+                if not switched_to_popup:
+                    logger.error('Failed to switch to the wallet popup window')
+                    logger.debug('Captcha solver probably failed to solve the captcha')
+                    return "Failed to switch to the wallet popup window"
+                
+                time.sleep(2)
+                
+                # Click first confirm button
+                try:
+                    first_confirmation = False
+                    for _ in range(5): # retry stale element
+                        time.sleep(1)
+                        try:
+                            first_confirmation_button = WebDriverWait(driver, 20).until(
+                                EC.presence_of_element_located((By.CLASS_NAME, 'btn-fill-highlight'))
+                            )
+                            first_confirmation_button.click()
+                            logger.debug('first confirm button click')
+                            first_confirmation = True
+                            return 0
+                        except sException.TimeoutException:
+                            logger.debug('Timeout clicking first confirm button')
+                        except:
+                            logger.exception('Exception clicking first confirm button')
+                    if not first_confirmation:
+                        logger.error('First confirm button not found or failed to click')
+                        return "First confirm button not found or failed to click"
+                except:
+                    logger.exception('Error clicking first confirm button')
+                    return "Error clicking first confirm button"
+            except:
+                logger.exception('Error confirming payment in wallet')
+                return "Error confirming payment in wallet"
+        except:
+            logger.exception('Error in captcha solver')
+            return "Error in captcha solver"
+        finally:
+            # Switch back to the original window
+            driver.switch_to.window(original_window)
+    
+    for i in range(3):
+        task3_intermediate_result = task3_intermediate()
+        if task3_intermediate_result == 0:
+            break
+        elif i == 2:
+            return task3_intermediate_result
+
     # Switch to iframe wallet
     try:
         for _ in range(5): # retry stale element
@@ -1117,25 +1123,27 @@ def main(profile, logger:logging.Logger):
                 logger.error('Task1 Failure')
                 return f"Task1 Failure\n{task1_success}" 
             
-            # if CONFIG['SHOULD_RUN_TASK2'].lower().strip() == 'yes':
-            #     task2_success = task2(driver, logger)
-            #     if task2_success==0:
-            #         logger.info('Task2 Success')
-            #     else:
-            #         logger.error('Task2 Failure')
-            #         return f"Task2 Failure\n{task2_success}"
+            if CONFIG['SHOULD_RUN_TASK2'].lower().strip() == 'yes':
+                task2_success = task2(driver, logger)
+                if task2_success==0:
+                    logger.info('Task2 Success')
+                else:
+                    logger.error('Task2 Failure')
+                    return f"Task2 Failure\n{task2_success}"
 
-            # # Task3 run 10 times
-            # for i in range(1, 11): 
-            #     task3_success = task3(driver, logger)
-            #     if task3_success==0:
-            #         logger.info(f'Task3 RUN-{i} Success')
-            #     else:
-            #         logger.error(f'Task3 RUN-{i} Failure')
-            #         return f"Task3 RUN-{i} Failure\n{task3_success}"
-            
-            # # voluntary wait for transaction to be reflected in wallet
-            # time.sleep(10)
+            # Task3 run 10 times
+            for i in range(1, 11): 
+                task3_success = task3(driver, logger)
+                if task3_success==0:
+                    logger.info(f'Task3 RUN-{i} Success')
+                elif i == 10:
+                    logger.error(f'Task3 RUN-{i} Failure')
+                    return f"Task3 RUN-{i} Failure\n{task3_success}"
+                else:
+                    logger.error(f'Task3 RUN-{i} Failure')
+
+            # voluntary wait for transaction to be reflected in wallet
+            time.sleep(10)
 
             # Task4 run 5 times
             for i in range(1, 6):
