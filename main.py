@@ -1251,15 +1251,15 @@ def run_profile(profile):
     return {"Profile ID": profile['integer_id'], "Run ID": run_id, "Result": result}
 
 if __name__ == '__main__':
-    logger.debug('Started')
-    profiles = get_profiles()
-    report = []
+    # logger.debug('Started')
+    # profiles = get_profiles()
+    report = [{"Profile ID": 1, "Run ID": 1, "Result": 1}]
 
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = {executor.submit(run_profile, profile): profile for profile in profiles}
+    # with ThreadPoolExecutor(max_workers=5) as executor:
+    #     futures = {executor.submit(run_profile, profile): profile for profile in profiles}
         
-        for future in as_completed(futures):
-            report.append(future.result())
+    #     for future in as_completed(futures):
+    #         report.append(future.result())
 
 
     def rotate_reports():
