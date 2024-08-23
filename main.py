@@ -1260,8 +1260,10 @@ if __name__ == '__main__':
     try:
         with open(file_path, mode='w', newline='') as file:
             pass
+        with open(os.path.join(reports_dir, 'latest-report.csv')):
+            pass
     except:
-        print("Please close the report.csv file and try again")
+        print("Report file is open in other program. Please close the report file and try again")
         sys.exit(1)
 
     logger.debug('Started')
