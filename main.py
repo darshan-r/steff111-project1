@@ -1153,6 +1153,9 @@ def main(profile, logger:logging.Logger):
         driver = open_browser_profile(profile['alphanumeric_id'], logger)
         if isinstance(driver, webdriver.Chrome):
             original_window = driver.current_window_handle
+            # if browser is not cached it shows all kinds of extention popups and welcome pages
+            logger.info('Waiting 60 seconds just in case browser is not cached already')
+            time.sleep(60)
             # Close all other tabs/windows
             for handle in driver.window_handles:
                 if handle != original_window:
@@ -1267,11 +1270,12 @@ if __name__ == '__main__':
     # test if report file is free to edit, to sve from permission error in case 
     # it is open in some other program.
     try:
-        with open(file_path, mode='w', newline='') as file:
+        with open(file_path, mode='w') as file:
             pass
-        with open(os.path.join(reports_dir, 'latest-report.csv')):
+        with open(os.path.join(reports_dir, 'latest-report.csv'), 'w') as file:
             pass
-    except:
+    except Exception as e:
+        print(e)
         print("Report file is open in other program. Please close the report file and try again")
         sys.exit(1)
 
