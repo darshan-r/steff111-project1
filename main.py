@@ -1242,8 +1242,7 @@ def main(profile, logger:logging.Logger):
             logger.debug('Error closing browser')
 
 def run_profile(profile):
-    run_id = str(uuid.uuid4())
-    log_file = os.path.join(logs_dir, f"{run_id}.log")
+    log_file = os.path.join(logs_dir, f"{profile['integer_id']}.log")
     
     # Set up a custom logger for this specific profile run
     custom_logger = setup_logger(log_file)
@@ -1252,7 +1251,7 @@ def run_profile(profile):
     result = main(profile, custom_logger)
     custom_logger.info(f'Completed run for profile: {profile["integer_id"]} with result: {result}')
     
-    return {"Profile ID": profile['integer_id'], "Run ID": run_id, "Result": result}
+    return {"Profile ID": profile['integer_id'], "Result": result}
 
 
 def delete_old_logs():
