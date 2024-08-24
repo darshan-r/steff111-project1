@@ -14,7 +14,7 @@ import pyperclip
 import threading
 import random
 import csv
-import uuid
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logzero
 from logzero import logger, LogFormatter
@@ -88,7 +88,7 @@ def get_profiles()->list:
         else:
             return profiles
     except:
-        logger.get('Error fetching profiles from api')
+        logger.error('Error fetching profiles from api')
         return profiles
     
 def open_browser_profile(user_id:str, logger:logging.Logger):
@@ -1263,19 +1263,17 @@ def delete_old_logs():
 if __name__ == '__main__':
     delete_old_logs()
     
-    # Write the report to a CSV file
-    file_path = os.path.join(reports_dir, 'report.csv')
+    # Report file
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    file_name = f'report_{timestamp}.csv'
+    file_path = os.path.join(reports_dir, file_name)
 
-    # test if report file is free to edit, to sve from permission error in case 
-    # it is open in some other program.
+    # test if report file is free to edit, to save from permission error in case.
     try:
         with open(file_path, mode='w') as file:
             pass
-        with open(os.path.join(reports_dir, 'latest-report.csv'), 'w') as file:
-            pass
-    except Exception as e:
-        print(e)
-        print("Report file is open in other program. Please close the report file and try again")
+    except:
+        logger.exception("Report file error")
         sys.exit(1)
 
     logger.debug('Started')
@@ -1288,32 +1286,12 @@ if __name__ == '__main__':
         for future in as_completed(futures):
             report.append(future.result())
 
-
-    def rotate_reports():
-        _latest = os.path.join(reports_dir, 'report.csv')
-        latest = os.path.join(reports_dir, 'latest-report.csv')
-        recent = os.path.join(reports_dir, 'recent-report.csv')
-        old = os.path.join(reports_dir, 'old-report.csv')
-
-        # Rotate the reports to keep the last 3
-        if os.path.exists(old):
-            os.remove(old)
-        if os.path.exists(recent):
-            os.rename(recent, old)
-        if os.path.exists(latest):
-            os.rename(latest, recent)
-        if os.path.exists(_latest):
-            os.rename(_latest, latest)
-
     
     with open(file_path, mode='w', newline='') as file:
-        fieldnames = ['Profile ID', 'Run ID', 'Result']
+        fieldnames = ['Profile ID', 'Result']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(report)
 
-    # preserve the last 3 reports
-    rotate_reports()
-
-    print("Report has been generated: latest-report.csv")
+    print("Report has been generated.")
 
