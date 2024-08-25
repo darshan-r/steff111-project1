@@ -879,7 +879,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                         EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{purchase__button_text}']]"))
                     )
                     driver.execute_script("arguments[0].scrollIntoView(true);", purchase__button)
-                    time.sleep(1)
+                    time.sleep(2)
 
                     if purchase__button:
                         logger.debug('purchase__button found')
@@ -912,7 +912,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                     usdg_token_button = WebDriverWait(driver, 5).until(
                         EC.element_to_be_clickable((By.XPATH, f"//div[text()='{usdg_token_button_text}']"))
                     )
-                    time.sleep(0.5)
+                    time.sleep(2)
 
                     if usdg_token_button:
                         logger.debug('usdg_token_button found')
@@ -945,7 +945,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                     next_button = WebDriverWait(driver, 5).until(
                         EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{next_button_text}']]"))
                     )
-                    time.sleep(0.5)
+                    time.sleep(2)
 
                     if next_button:
                         logger.debug('next_button found')
@@ -980,7 +980,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                         EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
                     )
                     # driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
-                    time.sleep(8)
+                    time.sleep(6)
 
                     if purchase2_button:
                         logger.debug('purchase2_button found')
