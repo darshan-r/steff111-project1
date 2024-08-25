@@ -1193,7 +1193,7 @@ def main(profile, logger:logging.Logger):
             # Task3 run 10 times
             if CONFIG['SHOULD_RUN_TASK3'].lower().strip() == 'yes':
                 task3_successes = 0
-                max_tries = 20 #so each profile get 2 chances
+                max_tries = 50 #so each profile get 5 chances
                 while task3_successes < 10 and max_tries > 0:
                     max_tries -= 1
                     task3_success = task3(driver, logger)
@@ -1214,7 +1214,7 @@ def main(profile, logger:logging.Logger):
             # Task4 run 5 times
             if CONFIG['SHOULD_RUN_TASK4'].lower().strip() == 'yes':
                 task4_successes = 0
-                max_tries = 10 #so each profile get 2 chances
+                max_tries = 25 #so each profile get 5 chances
                 while task4_successes < 5 and max_tries > 0:
                     max_tries -= 1
                     task4_success = task4(driver, logger)
