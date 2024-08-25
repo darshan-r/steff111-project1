@@ -979,8 +979,8 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                     purchase2_button = WebDriverWait(driver, 5).until(
                         EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
                     )
-                    driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
-                    time.sleep(5)
+                    # driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
+                    time.sleep(8)
 
                     if purchase2_button:
                         logger.debug('purchase2_button found')
