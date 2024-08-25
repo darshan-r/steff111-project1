@@ -1157,7 +1157,7 @@ def main(profile, logger:logging.Logger):
             original_window = driver.current_window_handle
             # if browser is not cached it shows all kinds of extention popups and welcome pages
             logger.info('Waiting 60 seconds just in case browser is not cached already')
-            # time.sleep(60)
+            time.sleep(60)
             # Close all other tabs/windows
             for handle in driver.window_handles:
                 if handle != original_window:
