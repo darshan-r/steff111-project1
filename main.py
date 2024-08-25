@@ -1198,9 +1198,10 @@ def main(profile, logger:logging.Logger):
 
             # Task3 run 10 times
             if CONFIG['SHOULD_RUN_TASK3'].lower().strip() == 'yes':
+                task3_successes_needed = 5
                 task3_successes = 0
                 max_tries = 50 #so each profile get 5 chances
-                while task3_successes < 5 and max_tries > 0:
+                while task3_successes < task3_successes_needed and max_tries > 0:
                     max_tries -= 1
                     task3_success = task3(driver, logger)
                     if task3_success==0:
@@ -1210,18 +1211,19 @@ def main(profile, logger:logging.Logger):
                         logger.error(f'Task3 RUN-{task3_successes} Failure')
                         driver.get('https://pioneer.particle.network/en/point')
                 
-                if task3_successes < 10:
-                    logger.error('Task3 Failed to execute 10 times')
-                    return "Task3 Failed to execute 10 times"
+                if task3_successes < task3_successes_needed:
+                    logger.error(f'Task3 Failed to execute {task3_successes_needed} times')
+                    return f"Task3 Failed to execute {task3_successes_needed} times"
                 
             # voluntary wait for transaction to be reflected in wallet
             time.sleep(10)
 
             # Task4 run 5 times
             if CONFIG['SHOULD_RUN_TASK4'].lower().strip() == 'yes':
+                task4_successes_needed = 5
                 task4_successes = 0
                 max_tries = 25 #so each profile get 5 chances
-                while task4_successes < 5 and max_tries > 0:
+                while task4_successes < task4_successes_needed and max_tries > 0:
                     max_tries -= 1
                     task4_success = task4(driver, logger)
                     if task4_success==0:
@@ -1231,9 +1233,9 @@ def main(profile, logger:logging.Logger):
                         logger.error(f'Task4 RUN-{task4_successes} Failure')
                         driver.get('https://pioneer.particle.network/en/point')
                 
-                if task4_successes < 5:
-                    logger.error('Task4 Failed to execute 5 times')
-                    return "Task4 Failed to execute 5 times"
+                if task4_successes < task4_successes_needed:
+                    logger.error(f'Task4 Failed to execute {task4_successes_needed} times')
+                    return f"Task4 Failed to execute {task4_successes_needed} times"
         else:
             logger.debug('Failed to open browser')
             return "Failed to open browser"        
