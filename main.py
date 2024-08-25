@@ -132,7 +132,6 @@ def open_browser_profile(user_id:str, logger:logging.Logger):
         return
 
 def close_browser_profile(user_id:str, driver:webdriver.Chrome, logger:logging.Logger):
-    driver.quit()
     requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}')
 
 def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
@@ -1024,6 +1023,13 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
             switched_to_popup = False
             counter = 0
             while True:# Wait for captcha get solved and eventually new window appear
+                try:
+                    driver.find_element(By.CSS_SELECTOR , 'div[role="alert"]')
+                    logger.debug('Captcha solver failed to solve the captcha')
+                    driver.refresh()
+                    task4_intermediate_steps()
+                except:
+                    pass
                 counter +=1
                 if counter % 60 == 0:
                     driver.refresh()
@@ -1194,7 +1200,7 @@ def main(profile, logger:logging.Logger):
             if CONFIG['SHOULD_RUN_TASK3'].lower().strip() == 'yes':
                 task3_successes = 0
                 max_tries = 50 #so each profile get 5 chances
-                while task3_successes < 10 and max_tries > 0:
+                while task3_successes < 5 and max_tries > 0:
                     max_tries -= 1
                     task3_success = task3(driver, logger)
                     if task3_success==0:
