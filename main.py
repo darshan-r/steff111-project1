@@ -522,7 +522,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
                     time.sleep(0.3)
                     wallet_address = pyperclip.paste()
 
-                    send_button = WebDriverWait(driver, 20).until(
+                    send_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.CLASS_NAME, 'icon-button-default'))
                         )
         
