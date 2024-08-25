@@ -515,7 +515,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
                 time.sleep(1)
                 try:
                     # Copy wallet address to clipboard
-                    wallet_address_button = WebDriverWait(driver, 20).until(
+                    wallet_address_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.CLASS_NAME, 'copy-wrap'))
                     )
                     wallet_address_button.click()
@@ -980,7 +980,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                         EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
                     )
                     # driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
-                    time.sleep(6)
+                    time.sleep(5)
 
                     if purchase2_button:
                         logger.debug('purchase2_button found')
@@ -1157,7 +1157,7 @@ def main(profile, logger:logging.Logger):
             original_window = driver.current_window_handle
             # if browser is not cached it shows all kinds of extention popups and welcome pages
             logger.info('Waiting 60 seconds just in case browser is not cached already')
-            time.sleep(60)
+            # time.sleep(60)
             # Close all other tabs/windows
             for handle in driver.window_handles:
                 if handle != original_window:
