@@ -444,7 +444,8 @@ def task2(driver:webdriver.Chrome, logger:logging.Logger):
 
         # Task2 Success
         if back_button_clicked:
-            time.sleep(5) # voluntary wait for amount re be reflected in wallet
+            logger.debug('Waiting 10 seconds for amount to be reflected in wallet')
+            time.sleep(10)
             return 0
         else:
             logger.error('Back button not found or failed to click')
@@ -878,7 +879,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                         EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{purchase__button_text}']]"))
                     )
                     driver.execute_script("arguments[0].scrollIntoView(true);", purchase__button)
-                    time.sleep(0.5)
+                    time.sleep(1)
 
                     if purchase__button:
                         logger.debug('purchase__button found')
@@ -966,6 +967,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
             logger.exception('Error clicking next_button')
             return "Error clicking next_button"
 
+        time.sleep(5)
         # Click Purchase2 button
         try:
             logger.debug('Clicking Purchase button (2)')
@@ -978,7 +980,7 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                         EC.element_to_be_clickable((By.XPATH, f"//div[@class='react-responsive-modal-modal']//button[.//span[text()='{purchase2_button_text}']]")) #f"//div[.//span[text()='{purchase2_button_text}']]"))
                     )
                     driver.execute_script("arguments[0].scrollIntoView(true);", purchase2_button)
-                    time.sleep(1)
+                    time.sleep(5)
 
                     if purchase2_button:
                         logger.debug('purchase2_button found')
@@ -989,12 +991,12 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
                     purchase2_button_clicked = True
                     return 0
                 except sException.TimeoutException:
-                    logger.debug('Timeout clicking next button')
+                    logger.debug('Timeout clicking purchase2_button')
                 except sException.ElementClickInterceptedException as e:
                     logger.debug(f'Click intercepted, retrying...')
                     time.sleep(1)
                 except:
-                    logger.exception('Exception clicking next button')
+                    logger.exception('Exception clicking purchase2_button')
 
             if not purchase2_button_clicked:
                 logger.error('purchase2_button not found or failed to click')
