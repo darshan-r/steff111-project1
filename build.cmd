@@ -1,6 +1,13 @@
 @echo off
 rem This script runs PyInstaller and copies the output
 
+rem Set the path to your virtual environment
+set "venv_path=venv"
+
+rem Activate the virtual environment
+call "%venv_path%\Scripts\activate.bat"
+
+
 rem Run PyInstaller with the specified spec file
 pyinstaller main.spec
 

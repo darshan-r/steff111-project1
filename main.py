@@ -20,11 +20,16 @@ import logzero
 from logzero import logger, LogFormatter
 import logging
 import sys
+from pathlib import Path
 
 API_URL = 'http://local.adspower.net:50325/'
 
+if getattr(sys, 'frozen', False):
+    current_dir = os.path.dirname('..')    
+else:
+    current_dir = os.path.dirname(os.path.abspath(__file__))    
+
 # Construct the absolute path to the config files
-current_dir = os.path.dirname(os.path.abspath(__file__))    
 dotenv_path = os.path.join(current_dir, '.env')
 profiles_csv_path = os.path.join(current_dir, 'profiles.csv')
 logs_dir = os.path.join(current_dir, 'logs')
@@ -217,37 +222,55 @@ def task1(driver:webdriver.Chrome, logger:logging.Logger):
             logger.debug('Wallet login failed')
             return "Wallet login failed"
 
-    asked_for_authorization = False
     if not is_website_logged_in(driver, logger):
         original_window = driver.window_handles[0]
-        if len(driver.window_handles) > 0:
-            driver.switch_to.window(driver.window_handles[-1])
-            if 'mcohilncbfahbmgdjkbpemcciiolgcge' in driver.current_url:
-                try:
-                    confirm_button = WebDriverWait(driver, 20).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, 'btn-fill-highlight'))
-                    )
-                    confirm_button.click()
-                    time.sleep(5)
+        def authorize_in_wallet(driver:webdriver.Chrome, logger:logging.Logger, original_window:str):
+            if len(driver.window_handles) > 1:
+                driver.switch_to.window(driver.window_handles[-1])
+                if 'mcohilncbfahbmgdjkbpemcciiolgcge' in driver.current_url:
+                    try:
+                        confirm_button = WebDriverWait(driver, 20).until(
+                            EC.element_to_be_clickable((By.CLASS_NAME, 'btn-fill-highlight'))
+                        )
+                        confirm_button.click()
+                        time.sleep(5)
+                        driver.switch_to.window(original_window)
+                        logger.debug('Login request authorized in wallet')
+                        return 0
+                    except Exception as e: 
+                        logger.error(f'Error authorizing login request in wallet: {e}')
+                        return "Error authorizing login request in wallet"
+                else:
                     driver.switch_to.window(original_window)
-                    logger.debug('Login request authorized in wallet')
-                    asked_for_authorization = True
-                except Exception as e: 
-                    logger.error(f'Error authorizing login request in wallet: {e}')
-                    return "Error authorizing login request in wallet"
+                    logger.debug(f'Window is not for okx wallet login- {driver.current_url}')
+                    return "Website login failed"
             else:
-                driver.switch_to.window(original_window)
-                logger.debug('Popup is not for okx wallet login')
+                logger.debug('Website login failed')
+                return "Website login failed"
+        
+        result = authorize_in_wallet(driver, logger, original_window)
+        if result == 0:
+            if not is_website_logged_in(driver, logger):
+                logger.debug('Website login failed')
                 return "Website login failed"
         else:
-            logger.debug('Website login failed')
-            return "Website login failed"
-    
-    
-    if asked_for_authorization:
-        if not is_website_logged_in(driver, logger):
-            logger.debug('Website login failed')
-            return "Website login failed"
+            try:
+                join_now = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CLASS_NAME,'polygon-btn-wrap'))
+                )
+                join_now.click()
+                okc_wallet_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH,"//span[text()='okx Wallet']"))
+                )
+                okc_wallet_button.click()
+                result = authorize_in_wallet(driver, logger, original_window)
+                if result == 0:
+                    if not is_website_logged_in(driver, logger):
+                        logger.debug('Website login failed')
+                        return "Website login failed"
+            except:
+                logger.exception('Error connecting wallet to website')
+                return "Error connecting wallet to website"        
 
     #Task1 Success
     return 0
@@ -1271,6 +1294,11 @@ def delete_old_logs():
             os.remove(file_path)
 
 if __name__ == '__main__':
+    # create essential directories
+    Path(logs_dir).mkdir(parents=True, exist_ok=True)
+    Path(reports_dir).mkdir(parents=True, exist_ok=True)
+    
+
     delete_old_logs()
     
     # Report file
