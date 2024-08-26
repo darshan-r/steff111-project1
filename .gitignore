@@ -4,3 +4,5 @@ captcha-solver-extension/
 .env
 solver
 solver.zip
+build/
+dist/
