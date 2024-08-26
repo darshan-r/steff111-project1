@@ -7,3 +7,5 @@ solver.zip
 build/
 dist/
 reports/
+build.cmd
+main.spec
