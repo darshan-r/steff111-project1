@@ -137,13 +137,16 @@ def open_browser_profile(user_id:str, logger:logging.Logger):
         return
 
 def close_browser_profile(user_id:str, driver:webdriver.Chrome, logger:logging.Logger):
-    while True:
-        time.sleep(2)
-        try:
-            res = requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}')
-            return res.json()
-        except:
-            pass
+    logger.debug('Closing browser')
+    try:
+        res = requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}').json()
+        logger.debug(f'adspower response {res}')
+        time.sleep(30)
+        res = requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}').json()
+        logger.debug(f'adspower response {res}')
+        logger.debug('Browser Closed Successfully')
+    except:
+        logger.exception('Error closing browser')    
 
 def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
     # Open OKX wallet login page
@@ -1274,11 +1277,7 @@ def main(profile, logger:logging.Logger):
         logger.exception('Exception occurred')
         return str(e)
     finally:
-        try:
-            close_browser_profile(profile['alphanumeric_id'], driver, logger)
-            logger.debug('Browser Closed Successfully')
-        except:
-            logger.debug('Error closing browser')
+        close_browser_profile(profile['alphanumeric_id'], driver, logger)
 
 def run_profile(profile):
     log_file = os.path.join(logs_dir, f"{profile['integer_id']}.log")
