@@ -93,7 +93,7 @@ def get_profiles()->list:
         else:
             return profiles
     except:
-        logger.error('Error fetching profiles from api')
+        logger.exception('Error fetching profiles from api')
         return profiles
     
 def open_browser_profile(user_id:str, logger:logging.Logger):
@@ -137,7 +137,13 @@ def open_browser_profile(user_id:str, logger:logging.Logger):
         return
 
 def close_browser_profile(user_id:str, driver:webdriver.Chrome, logger:logging.Logger):
-    requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}')
+    while True:
+        time.sleep(2)
+        try:
+            res = requests.get(f'{API_URL}api/v1/browser/stop?user_id={user_id}')
+            return res.json()
+        except:
+            pass
 
 def wallet_login(driver:webdriver.Chrome, logger:logging.Logger):
     # Open OKX wallet login page
