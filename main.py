@@ -1208,6 +1208,8 @@ def task5(driver:webdriver.Chrome, logger:logging.Logger):
 
         # Navigate to the 3rd parent of the found div
         parent_element = nft_item.find_element(By.XPATH, "ancestor::*[3]")
+        
+        logger.debug(parent_element.text)
 
         #wait for button with text Mint
         mint_button = WebDriverWait(parent_element, 60).until(
