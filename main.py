@@ -1398,20 +1398,38 @@ def main(profile, logger:logging.Logger):
                     return f"Task4 Failed to execute {task4_successes_needed} times"
                 
             if CONFIG['SHOULD_RUN_TASK5'].lower().strip()=='yes':
-                task5_success = task5(driver, logger)
-                if task5_success==0:
-                    logger.info('task5 Success')
-                else:
-                    logger.error('task5 Failure')
-                    return f"task5 Failure\n{task5_success}" 
+                task5_successes_needed = 1
+                task5_successes = 0
+                max_tries = 5
+                while task5_successes < task5_successes_needed and max_tries > 0:
+                    max_tries -= 1
+                    task5_success = task5(driver, logger)
+                    if task5_success==0:
+                        logger.info(f'Task5 RUN-{task5_successes} Success')
+                        task5_successes += 1
+                    else:
+                        logger.error(f'Task5 RUN-{task5_successes} Failure')
+                
+                if task5_successes < task5_successes_needed:
+                    logger.error(f'Task5 Failed to execute {task5_successes_needed} times')
+                    return f"Task5 Failed to execute {task5_successes_needed} times"
             
             if CONFIG['SHOULD_RUN_TASK6'].lower().strip()=='yes':
-                task6_success = task6(driver, logger)
-                if task6_success==0:
-                    logger.info('task6 Success')
-                else:
-                    logger.error('task6 Failure')
-                    return f"task6 Failure\n{task6_success}" 
+                task6_successes_needed = 1
+                task6_successes = 0
+                max_tries = 5
+                while task6_successes < task6_successes_needed and max_tries > 0:
+                    max_tries -= 1
+                    task6_success = task6(driver, logger)
+                    if task6_success==0:
+                        logger.info(f'Task6 RUN-{task6_successes} Success')
+                        task6_successes += 1
+                    else:
+                        logger.error(f'Task6 RUN-{task6_successes} Failure')
+                
+                if task6_successes < task6_successes_needed:
+                    logger.error(f'Task6 Failed to execute {task6_successes_needed} times')
+                    return f"Task6 Failed to execute {task6_successes_needed} times"
         else:
             logger.debug('Failed to open browser')
             return "Failed to open browser"        
