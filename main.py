@@ -1187,6 +1187,66 @@ def task4(driver:webdriver.Chrome, logger:logging.Logger):
         logger.exception('Error clicking back button')
         return "Error clicking back button"
 
+# Function to check if okx_wallet_id is in the URL of any window handle
+def check_wallet_id_in_window_handles(driver:webdriver.Chrome, okx_wallet_id):
+    for handle in driver.window_handles:
+        driver.switch_to.window(handle)
+        current_url = driver.current_url
+        if okx_wallet_id in current_url:
+            return True
+    return False
+
+def task5(driver:webdriver.Chrome, logger:logging.Logger):
+    original_handle = driver.current_window_handle
+    try:
+        driver.get('https://pioneer.particle.network/en/nft')
+        #wait for button with text Mint
+        mint_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Mint']]"))
+        )
+        time.sleep(2)
+        mint_button.click()
+        logger.debug('Mint button clicked')
+        # wait for button with text Confirm
+        confirm_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Confirm']]"))
+        )
+        # wait for its data-disabled attribute to be false
+        WebDriverWait(driver, 60).until(lambda d: confirm_button.get_attribute('data-disabled') == 'false')
+        
+        time.sleep(2)
+        confirm_button.click()
+        logger.debug('Mint confirm button clicked')
+
+        # wait for window handle whose url contains wallet id
+        okx_wallet_id = 'mcohilncbfahbmgdjkbpemcciiolgcge'
+        WebDriverWait(driver, 60).until(lambda d: check_wallet_id_in_window_handles(d, okx_wallet_id))
+        logger.debug('Switched to wallet window')
+
+        # wait for button with text Confirm
+        confirm_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Confirm']]"))
+        )
+        time.sleep(2)
+        confirm_button.click()
+        logger.debug('Wallet confirm button clicked')
+
+        # Wait up to 60 seconds for the div containing 'Successful!' text to appear
+        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
+        logger.debug('NFT Mint Successful!')
+        time.sleep(2)
+        close_button = WebDriverWait(driver, 60).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'react-responsive-modal-closeButton'))
+        )
+        close_button.click()
+        logger.debug('NFT Mint confirmation popup closed')
+        return 0
+    except:
+        logger.exception('Error')
+    finally:
+        driver.switch_to.window(original_handle)
+
+
 def main(profile, logger:logging.Logger):
     try:
         logger.info(f'Opening Browser Profile: {profile["integer_id"]}')
@@ -1268,6 +1328,14 @@ def main(profile, logger:logging.Logger):
                 if task4_successes < task4_successes_needed:
                     logger.error(f'Task4 Failed to execute {task4_successes_needed} times')
                     return f"Task4 Failed to execute {task4_successes_needed} times"
+                
+            if CONFIG['SHOULD_RUN_TASK5'].lower().strip()=='yes':
+                task5_success = task5(driver, logger)
+                if task5_success==0:
+                    logger.info('task5 Success')
+                else:
+                    logger.error('task5 Failure')
+                    return f"task5 Failure\n{task5_success}" 
         else:
             logger.debug('Failed to open browser')
             return "Failed to open browser"        
