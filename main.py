@@ -1200,8 +1200,17 @@ def task5(driver:webdriver.Chrome, logger:logging.Logger):
     original_handle = driver.current_window_handle
     try:
         driver.get('https://pioneer.particle.network/en/nft')
+
+        # wait for div which contains text Co-Testnet Wave III and has class item
+        nft_item = WebDriverWait(driver, 60).until(
+            EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Co-Testnet Wave III')]"))
+        )
+
+        # Navigate to the 3rd parent of the found div
+        parent_element = nft_item.find_element(By.XPATH, "ancestor::*[3]")
+
         #wait for button with text Mint
-        mint_button = WebDriverWait(driver, 60).until(
+        mint_button = WebDriverWait(parent_element, 60).until(
             EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Mint']]"))
         )
         time.sleep(2)
@@ -1235,7 +1244,7 @@ def task5(driver:webdriver.Chrome, logger:logging.Logger):
         driver.switch_to.window(original_handle)
 
         # Wait up to 90 seconds for the div containing 'Successful!' text to appear
-        WebDriverWait(driver, 90).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
+        WebDriverWait(driver, 120).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
         logger.debug('NFT Mint Successful!')
         time.sleep(2)
         close_button = WebDriverWait(driver, 60).until(
@@ -1289,7 +1298,7 @@ def task6(driver:webdriver.Chrome, logger:logging.Logger):
         driver.switch_to.window(original_handle)
 
         # Wait up to 90 seconds for the div containing 'Successful!' text to appear
-        WebDriverWait(driver, 90).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
+        WebDriverWait(driver, 120).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
         logger.debug('Check-in Successful!')
         time.sleep(2)
         close_button = WebDriverWait(driver, 60).until(
