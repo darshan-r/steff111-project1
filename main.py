@@ -1231,8 +1231,11 @@ def task5(driver:webdriver.Chrome, logger:logging.Logger):
         confirm_button.click()
         logger.debug('Wallet confirm button clicked')
 
-        # Wait up to 60 seconds for the div containing 'Successful!' text to appear
-        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
+        # Switch back to the original window
+        driver.switch_to.window(original_handle)
+
+        # Wait up to 90 seconds for the div containing 'Successful!' text to appear
+        WebDriverWait(driver, 90).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
         logger.debug('NFT Mint Successful!')
         time.sleep(2)
         close_button = WebDriverWait(driver, 60).until(
@@ -1246,6 +1249,59 @@ def task5(driver:webdriver.Chrome, logger:logging.Logger):
     finally:
         driver.switch_to.window(original_handle)
 
+def task6(driver:webdriver.Chrome, logger:logging.Logger):
+    original_handle = driver.current_window_handle
+    try:
+        driver.get('https://pioneer.particle.network/en/point')
+
+        # wait for button with test Check-in
+        check_in_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Check-in']]"))
+        )
+        time.sleep(2)
+        check_in_button.click()
+        logger.debug('Check-in button clicked')
+
+        # wait for button with text Confirm
+        confirm_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Confirm']]"))
+        )
+        # wait for its data-disabled attribute to be false
+        WebDriverWait(driver, 60).until(lambda d: confirm_button.get_attribute('data-disabled') == 'false')
+        time.sleep(2)
+        confirm_button.click()
+        logger.debug('Check-in confirm button clicked')
+
+        # wait for window handle whose url contains wallet id
+        okx_wallet_id = 'mcohilncbfahbmgdjkbpemcciiolgcge'
+        WebDriverWait(driver, 120).until(lambda d: check_wallet_id_in_window_handles(d, okx_wallet_id))
+        logger.debug('Switched to wallet window')
+
+        # wait for button with text Confirm
+        confirm_button = WebDriverWait(driver, 60).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[.//div[text()='Confirm']]"))
+        )
+        time.sleep(2)
+        confirm_button.click()
+        logger.debug('Wallet confirm button clicked')
+
+        # Switch back to the original window
+        driver.switch_to.window(original_handle)
+
+        # Wait up to 90 seconds for the div containing 'Successful!' text to appear
+        WebDriverWait(driver, 90).until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(), 'Transfer Successful!')]")))
+        logger.debug('Check-in Successful!')
+        time.sleep(2)
+        close_button = WebDriverWait(driver, 60).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'react-responsive-modal-closeButton'))
+        )
+        close_button.click()
+        logger.debug('Check-in Successful popup closed')
+        return 0
+    except:
+        logger.exception('Error')
+    finally:
+        driver.switch_to.window(original_handle)
 
 def main(profile, logger:logging.Logger):
     try:
@@ -1336,6 +1392,14 @@ def main(profile, logger:logging.Logger):
                 else:
                     logger.error('task5 Failure')
                     return f"task5 Failure\n{task5_success}" 
+            
+            if CONFIG['SHOULD_RUN_TASK6'].lower().strip()=='yes':
+                task6_success = task6(driver, logger)
+                if task6_success==0:
+                    logger.info('task6 Success')
+                else:
+                    logger.error('task6 Failure')
+                    return f"task6 Failure\n{task6_success}" 
         else:
             logger.debug('Failed to open browser')
             return "Failed to open browser"        
