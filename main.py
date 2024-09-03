@@ -14,6 +14,7 @@ import pyperclip
 import threading
 import random
 import csv
+import pandas as pd
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logzero
@@ -485,7 +486,7 @@ def task2(driver:webdriver.Chrome, logger:logging.Logger):
         logger.exception('Error clicking back button')
         return "Error clicking back button"
 
-def task3(driver:webdriver.Chrome, logger:logging.Logger):
+def task3(driver:webdriver.Chrome, logger:logging.Logger, wallet_address):
     original_window = driver.current_window_handle
 
     def task3_intermediate():
@@ -546,12 +547,12 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger):
                 time.sleep(1)
                 try:
                     # Copy wallet address to clipboard
-                    wallet_address_button = WebDriverWait(driver, 10).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, 'copy-wrap'))
-                    )
-                    wallet_address_button.click()
-                    time.sleep(0.3)
-                    wallet_address = pyperclip.paste()
+                    # wallet_address_button = WebDriverWait(driver, 10).until(
+                    #     EC.element_to_be_clickable((By.CLASS_NAME, 'copy-wrap'))
+                    # )
+                    # wallet_address_button.click()
+                    # time.sleep(0.3)
+                    # wallet_address = pyperclip.paste()
 
                     send_button = WebDriverWait(driver, 10).until(
                         EC.element_to_be_clickable((By.CLASS_NAME, 'icon-button-default'))
@@ -1317,6 +1318,14 @@ def task6(driver:webdriver.Chrome, logger:logging.Logger):
 
 def main(profile, logger:logging.Logger):
     try:
+        df_wallet_data = pd.read_excel('Particle wallets.xlsx')
+        result = df_wallet_data.loc[df_wallet_data['acc_id'] == int(profile["integer_id"]), 'wallet']
+        if not result.empty:
+            particle_wallet_address = result.iloc[0]
+        else:
+            logger.error("profile id not found in Particles wallets file")
+            return "Failure"
+            
         logger.info(f'Opening Browser Profile: {profile["integer_id"]}')
         driver = open_browser_profile(profile['alphanumeric_id'], logger)
         if isinstance(driver, webdriver.Chrome):
@@ -1363,7 +1372,7 @@ def main(profile, logger:logging.Logger):
                 max_tries = 50 #so each profile get 5 chances
                 while task3_successes < task3_successes_needed and max_tries > 0:
                     max_tries -= 1
-                    task3_success = task3(driver, logger)
+                    task3_success = task3(driver, logger, particle_wallet_address)
                     if task3_success==0:
                         logger.info(f'Task3 RUN-{task3_successes} Success')
                         task3_successes += 1
