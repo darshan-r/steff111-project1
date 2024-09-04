@@ -121,7 +121,6 @@ def open_browser_profile(user_id:str, logger:logging.Logger):
         chrome_driver = response["data"]["webdriver"]
         service = Service(executable_path=chrome_driver)
         chrome_options = Options()
-
         chrome_options.add_experimental_option("debuggerAddress", response["data"]["ws"]["selenium"])
         logging_prefs = {'performance': 'ALL'}
         chrome_options.set_capability('goog:loggingPrefs', logging_prefs)
@@ -339,7 +338,9 @@ def task2(driver:webdriver.Chrome, logger:logging.Logger):
                 )
                 deposit_amount_field.click()
                 time.sleep(0.5)
-                TASK2_DEPOSIT_AMOUNT = '0.9'
+                TASK_2_AMOUNT_MIN = float(CONFIG['TASK_2_AMOUNT_MIN'])
+                TASK_2_AMOUNT_MAX = float(CONFIG['TASK_2_AMOUNT_MAX'])
+                TASK2_DEPOSIT_AMOUNT = str(round(random.uniform(TASK_2_AMOUNT_MIN, TASK_2_AMOUNT_MAX), 3))
                 deposit_amount_field.send_keys(TASK2_DEPOSIT_AMOUNT)
                 time.sleep(2)
                 deposit_amount_field.send_keys(Keys.RETURN)
@@ -647,6 +648,91 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger, wallet_address):
         except:
             logger.exception('Error clicking token_item button')
             return "Error clicking token_item button"
+        
+        TASK_3_CHAINS = CONFIG['TASK_3_CHAINS']
+        if TASK_3_CHAINS:
+            TASK_3_CHAINS = [c.strip() for c in TASK_3_CHAINS.split(',')]
+        else:
+            logger.error("Could not get task3 chains from .env")
+            return "Could not get task3 chains from .env"
+        chain_choice = random.choice(TASK_3_CHAINS)
+        logger.debug(f'Choosing {chain_choice} chain')
+        already_selected = False
+        # Click Choose Chain Button
+        try:
+            logger.debug('Clicking choose_chain button')
+            choose_chain_clicked = False
+            for _ in range(5): # retry stale element
+                time.sleep(1)
+                try:
+                    choose_chain_button = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'choose-chain'))
+                        )
+                    if choose_chain_button.find_element(By.TAG_NAME, "span").text == chain_choice:
+                        logger.debug(f'{chain_choice} chain already selected')
+                        already_selected = True
+                        choose_chain_clicked = True
+                        break 
+                    if choose_chain_button:
+                        logger.debug('choose_chain button found')
+                    else:
+                        logger.debug('choose_chain button missing')
+                    time.sleep(1)
+                    choose_chain_button.click()
+                    logger.debug('choose_chain button clicked')
+                    choose_chain_clicked = True
+                    break
+                except sException.TimeoutException:
+                    logger.debug('Timeout clicking choose token button')
+                except:
+                    logger.exception('Exception clicking choose token button')
+            if not choose_chain_clicked:
+                logger.error('choose_chain button not found or failed to click')
+                return "choose_chain button not found or failed to click"
+        except:
+            logger.exception('Error clicking choose_chain button')
+            return "Error clicking choose_chain button"
+
+        
+        if not already_selected:
+            # Choose Chain Randomly
+            try:
+                chain_item_clicked = False
+                for _ in range(5): # retry stale element
+                    time.sleep(1)
+                    try:
+                        scroll_div = WebDriverWait(driver, 20).until(
+                            EC.presence_of_element_located((By.CLASS_NAME, 'scrollContainer'))
+                            )
+                        if not scroll_div:
+                            logger.error('scroll_div not found on wallet page')
+                            return "scroll_div not found on wallet page"
+                        
+                        time.sleep(1)
+                        chain_item_button = WebDriverWait(driver, 20).until(
+                            
+                            EC.element_to_be_clickable(( By.XPATH, f"//div[span[text()='{chain_choice}']]"))
+                        )
+            
+                        if chain_item_button:
+                            logger.debug('chain_item button found')
+                        else:
+                            logger.debug('chain_item button missing')
+                        time.sleep(1)
+                        chain_item_button.click()
+                        logger.debug('chain_item button clicked')
+                        chain_item_clicked = True
+                        break
+                    except sException.TimeoutException:
+                        logger.debug('Timeout clicking token button')
+                    except:
+                        logger.exception('Exception clicking token button')
+                if not chain_item_clicked:
+                    logger.error('chain_item button not found or failed to click')
+                    return "chain_item button not found or failed to click"
+            except:
+                logger.exception('Error clicking chain_item button')
+                return "Error clicking chain_item button"
         
         # Enter wallet address
         try:
