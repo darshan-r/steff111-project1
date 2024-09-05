@@ -542,6 +542,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger, wallet_address):
 
         # Copy wallet address and Click send button
         try:
+            time.sleep(5)
             logger.debug('Clicking send button')
             send_clicked = False
             for _ in range(5): # retry stale element
@@ -896,6 +897,7 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger, wallet_address):
                     )
                 if 'view on block explorer' in div.text.lower():
                     logger.info('Transaction success')
+                    time.sleep(2)
                     break
                 else:
                     logger.debug('Waiting for transaction confirmation')
@@ -912,9 +914,10 @@ def task3(driver:webdriver.Chrome, logger:logging.Logger, wallet_address):
         logger.debug('Clicking cross button')
         for _ in range(5): # retry stale element 
             try:
-                cross_button = WebDriverWait(driver, 20).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, 'ant-drawer-extra'))
+                cross_button_presence = WebDriverWait(driver, 20).until(
+                        EC.element_to_be_clickable((By.CLASS_NAME, 'ant-drawer-open'))
                         )
+                cross_button = cross_button_presence.find_element(By.CLASS_NAME, 'ant-drawer-extra')
                 cross_button.click()
                 break
             except sException.StaleElementReferenceException:
