@@ -300,32 +300,35 @@ def task2(driver:webdriver.Chrome, logger:logging.Logger):
     original_window = driver.current_window_handle
 
     # Click deposit button
-    try:
-        logger.debug('Clicking deposit button')
-        deposit_clicked = False
-        for _ in range(5): # retry stale element
-            time.sleep(1)
-            try:
-                deposit_button_text = 'Deposit'
-                deposit_button = WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{deposit_button_text}']]"))
-                )
-                deposit_button.click()
-                logger.debug('deposit button clicked')
-                deposit_clicked = True
-                break
-            except sException.TimeoutException:
-                logger.debug('Timeout clicking deposit field')
-            except:
-                logger.exception('Exception clicking deposit button')
+    # try:
+    #     logger.debug('Clicking deposit button')
+    #     deposit_clicked = False
+    #     for _ in range(5): # retry stale element
+    #         time.sleep(1)
+    #         try:
+    #             deposit_button_text = 'Deposit'
+    #             deposit_button = WebDriverWait(driver, 5).until(
+    #                 EC.element_to_be_clickable((By.XPATH, f"//button[.//span[text()='{deposit_button_text}']]"))
+    #             )
+    #             deposit_button.click()
+    #             logger.debug('deposit button clicked')
+    #             deposit_clicked = True
+    #             break
+    #         except sException.TimeoutException:
+    #             logger.debug('Timeout clicking deposit field')
+    #         except:
+    #             logger.exception('Exception clicking deposit button')
 
-        if not deposit_clicked:
-            logger.error('Deposit button not found or failed to click')
-            return "Deposit button not found or failed to click"
-    except:
-        logger.exception('Error clicking deposit button')
-        return "Error clicking deposit button"
-    
+    #     if not deposit_clicked:
+    #         logger.error('Deposit button not found or failed to click')
+    #         return "Deposit button not found or failed to click"
+    # except:
+    #     logger.exception('Error clicking deposit button')
+    #     return "Error clicking deposit button"
+
+    # Go to deposit page
+    driver.get('https://pioneer.particle.network/en/universalGas')
+
     time.sleep(2)
     # Enter deposit amount
     try:
