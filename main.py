@@ -1364,7 +1364,7 @@ def task6(driver:webdriver.Chrome, logger:logging.Logger):
             EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Check-in']]"))
         )
         time.sleep(2)
-        check_in_button.click()
+        driver.execute_script("arguments[0].click();", check_in_button)
         logger.debug('Check-in button clicked')
 
         # wait for button with text Confirm
